@@ -9,29 +9,18 @@ upstream superset_websocket {
 }
 
 server {
-    listen 80 default_server;
-    server_name  _;
+    listen 80;
+    server_name localhost; # Mude de _ para localhost para forçar a precedência
 
-    # ─── 1. ENDPOINT INTERNO DE VERIFICAÇÃO ──────
     location = /auth/verify {
-        internal;
-        proxy_pass http://auth-api:8001/auth/verify;
-        proxy_pass_request_body off;
-        proxy_set_header Content-Length "";
-        proxy_set_header Cookie $http_cookie;
-        proxy_set_header X-Real-IP $remote_addr;
+        return 200;
     }
 
-    # ─── 2. REDIRECIONAMENTO PARA LOGIN PHP ──────
     location @redireciona_login {
         return 302 "${PHP_LOGIN_URL}?from=$scheme://$host$request_uri";
     }
 
-    # ─── 3. WEBSOCKET (Protegido) ──────
     location /ws {
-        auth_request /auth/verify;
-        error_page 401 = @redireciona_login;
-
         proxy_pass http://superset_websocket;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -39,38 +28,28 @@ server {
         proxy_set_header Host $host;
     }
 
-    # ─── 4. STATIC ──────
-    location ${SUPERSET_APP_ROOT}/static {
-        proxy_pass http://host.docker.internal:9000;
-        proxy_http_version 1.1;
+    location /static {
+        proxy_pass http://superset_app;
         proxy_set_header Host $host;
     }
 
-    # ─── 5. APP PRINCIPAL ──────
-    location ${SUPERSET_APP_ROOT} {
-        auth_request /auth/verify;
-        error_page 401 = @redireciona_login;
-
-        # Captura os dados retornados pela auth-api
-        auth_request_set $user_id    $upstream_http_x_user_id;
-        auth_request_set $user_login $upstream_http_x_user_login;
-        auth_request_set $empresa_id $upstream_http_x_empresa_id;
+    location / {
+        # MOCK ATIVO
+        set $user_login "admin"; 
 
         proxy_pass http://superset_app;
         
-        # Headers fundamentais para o Proxy Fix do Superset
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         
-        # Injeta os headers de identidade
-        proxy_set_header X-User-Id $user_id;
+        proxy_set_header REMOTE_USER $user_login;
+        proxy_set_header X-User-Id "1";
         proxy_set_header X-User-Login $user_login;
-        proxy_set_header X-Empresa-Id $empresa_id;
+        proxy_set_header X-Empresa-Id "99";
 
         proxy_http_version 1.1;
         port_in_redirect off;
-        proxy_connect_timeout 300;
     }
 }
