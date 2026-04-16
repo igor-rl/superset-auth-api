@@ -18,11 +18,12 @@ server {
         proxy_pass http://auth-api:8001/auth/verify;
         proxy_pass_request_body off;
         proxy_set_header Content-Length "";
-        proxy_set_header Cookie $http_cookie;
-        proxy_set_header X-Real-IP $remote_addr;
         
-        # Se a auth-api retornar 500, o Nginx vai barrar. 
-        # Garanta que a auth-api esteja rodando.
+        # Apenas repassa o cookie original se ele existir
+        proxy_set_header Cookie $http_cookie;
+        
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header Host $host;
     }
 
     # 2. LOGOUT

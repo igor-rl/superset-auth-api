@@ -50,8 +50,6 @@ services:
     env_file:
       - path: docker/.env # default
         required: true
-      - path: docker/.env-local # optional override
-        required: false
     image: nginx:latest
     restart: unless-stopped
     ports:
@@ -248,6 +246,7 @@ services:
       - ./docker/.env
     environment:
       - API_ENV=production
+      - TEST_SESSION_TOKEN=6fb8884dcb3c99d58af2c44bd4dcc64b
     command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
     volumes:
       - ./auth-api:/app
