@@ -1,2 +1,7 @@
 **/__pycache__/
 **/.env
+
+docker/*
+!docker/
+!docker/nginx/
+!docker/pythonpath_dev/
