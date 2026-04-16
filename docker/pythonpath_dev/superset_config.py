@@ -9,7 +9,6 @@ logger = logging.getLogger()
 AUTH_TYPE = AUTH_REMOTE_USER
 AUTH_USER_REGISTRATION = True 
 AUTH_USER_REGISTRATION_ROLE = "Admin"
-# O Flask lê o header "REMOTE_USER" do Nginx como "REMOTE_USER"
 AUTH_REMOTE_USER_ENV_VAR = "REMOTE_USER"
 
 # Segurança e Proxy Fix
@@ -79,5 +78,9 @@ JINJA_CONTEXT_ADDONS = {
     'current_user_id': get_user_id_header,
     'current_user_empresa_id': get_empresa_id_header,
 }
+
+# ─── Custom Security Manager (SSO via header X-User-Login) ───────────────────
+from custom_sso_security_manager import CustomSsoSecurityManager
+CUSTOM_SECURITY_MANAGER = CustomSsoSecurityManager
 
 logger.info("✅ Superset Config Ativa (Mock Mode)")

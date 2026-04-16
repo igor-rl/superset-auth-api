@@ -24,6 +24,8 @@ async def verify(request: Request, db: AsyncSession = Depends(get_db)):
     # lê o token do cookie
     token = request.cookies.get(settings.cookie_name)
 
+    print(f"[VERIFY] cookies={dict(request.cookies)} token={token}")
+
     if not token:
         return Response(status_code=401, content="sem token")
 
